@@ -1,4 +1,3 @@
-import * as vscode from "vscode";
 import { streamChat, ChatMessage } from "./smartsyClient";
 import { runTool } from "./tools";
 import { ApprovalRequest, ToolContext } from "./tools/types";
@@ -10,7 +9,6 @@ export interface AgentDeps {
   model: string;
   maxIterations: number;
   autoApproveReads: boolean;
-  workspaceRoot?: vscode.Uri;
   requestApproval: (req: ApprovalRequest) => Promise<boolean>;
   log: (msg: string) => void;
 }
@@ -23,6 +21,14 @@ export interface TurnCallbacks {
   onToolCall: (id: string, name: string, args: any) => void;
   onToolResult: (id: string, result: unknown) => void;
   onStatus?: (text: string) => void;
+}
+
+/** The static priming turn that teaches the model the coding toolset. */
+export function primerHistory(): ChatMessage[] {
+  return [
+    { role: "user", content: CODING_TOOLS_PROMPT },
+    { role: "assistant", content: PRIMER_ACK },
+  ];
 }
 
 const TOOL_CALL_RE = /<tool_call>\s*([\s\S]*?)\s*<\/tool_call>/g;
@@ -62,7 +68,6 @@ export class Agent {
   constructor(private deps: AgentDeps) {
     this.reset();
     this.ctx = {
-      workspaceRoot: deps.workspaceRoot,
       autoApproveReads: deps.autoApproveReads,
       requestApproval: deps.requestApproval,
       log: deps.log,
@@ -70,10 +75,15 @@ export class Agent {
   }
 
   reset(): void {
-    this.history = [
-      { role: "user", content: CODING_TOOLS_PROMPT },
-      { role: "assistant", content: PRIMER_ACK },
-    ];
+    this.history = primerHistory();
+  }
+
+  getHistory(): ChatMessage[] {
+    return this.history;
+  }
+
+  loadHistory(h: ChatMessage[] | undefined): void {
+    this.history = Array.isArray(h) && h.length ? h.slice() : primerHistory();
   }
 
   /** Run one user turn to completion (through any number of tool round-trips). */
@@ -82,19 +92,23 @@ export class Agent {
     for (let i = 0; i < this.deps.maxIterations; i++) {
       if (signal.aborted) throw new DOMException("Cancelled", "AbortError");
 
+      const prior = this.history.slice();
+      // Record the user turn BEFORE streaming so it survives an abort/error
+      // mid-stream — keeps agent history consistent with the UI transcript.
+      this.history.push({ role: "user", content });
+
       const { text } = await streamChat(
         {
           baseUrl: this.deps.baseUrl,
           apiKey: this.deps.apiKey,
           content,
-          history: this.history,
+          history: prior,
           model: this.deps.model,
           signal,
         },
         { onText: cb.onText, onReasoning: cb.onReasoning }
       );
 
-      this.history.push({ role: "user", content });
       this.history.push({ role: "assistant", content: text });
 
       const { calls, cleaned } = parseToolCalls(text);

@@ -41,7 +41,7 @@ export async function promptForApiKey(
 ): Promise<string | undefined> {
   const key = await vscode.window.showInputBox({
     title: "Smartsy API Key",
-    prompt: "Paste a Smartsy API key (starts with sk_). Create one in the Smartsy admin panel under Users → API keys.",
+    prompt: "Paste a Smartsy API key (starts with sk_). Create one in your Smartsy account → Settings → Developer.",
     password: true,
     ignoreFocusOut: true,
     placeHolder: "sk_…",

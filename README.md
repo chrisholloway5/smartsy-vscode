@@ -6,12 +6,16 @@ It talks to Smartsy's existing `/api/chat` endpoint over SSE, authenticated with
 
 ## Features
 
-- **Chat sidebar** with streaming replies (and reasoning, when the model emits it).
+- **Chat sidebar** with streaming replies, **syntax-highlighted** code blocks (highlight.js), and reasoning when the model emits it.
 - **Codebase-aware tools** the model can call:
   - `readFile`, `listDir`, `search`, `activeEditor`, `diagnostics` (read-only, auto-run)
-  - `editFile`, `createFile` — shown as a **native diff you approve** before anything is written
+  - `editFile` — single or **multi-hunk** exact-string edits, shown as a **native diff you approve** before anything is written
+  - `createFile` — also diff-previewed and approved
   - `runCommand` — build/test/git in the workspace, **with your approval**, output fed back to the model
-- **You're in control:** reads run automatically; every write and shell command requires an explicit Approve/Deny. The agent is confined to the open workspace folder.
+- **@-file mentions:** type `@` in the composer to attach a file's contents as context (with autocomplete).
+- **Conversation history:** chats persist across reloads; the history button (or “Smartsy: History”) switches between past conversations; “New Chat” starts a fresh one.
+- **Multi-root workspaces:** paths are labelled/resolved per folder (`folderName/path`).
+- **You're in control:** reads run automatically; every write and shell command requires an explicit Approve/Deny. The agent is confined to the open workspace folders.
 
 ## Setup
 

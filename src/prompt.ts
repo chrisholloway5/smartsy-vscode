@@ -14,7 +14,7 @@ Example:
 Rules:
 - Read before you edit; match the project's existing conventions and style.
 - editFile needs an exact "find" string (whitespace included) that is unique in the file. If it could match more than once, add surrounding context or pass replaceAll:true.
-- All paths are relative to the workspace root; you cannot reach files outside it.
+- Paths are relative to the workspace root; you cannot reach files outside it. If the workspace has multiple folders, prefix the path with the folder name (e.g. "web/src/index.ts") — listDir/search results are already labelled that way.
 - editFile, createFile and runCommand require the user's approval and may be denied — handle denial gracefully and suggest alternatives.
 - Keep each step focused (1–3 tool calls). When the task is complete, briefly summarise what changed.
 - When the user says "this file" or "the selection", call activeEditor first.
@@ -25,7 +25,7 @@ Available tools:
 - search({query, glob?, isRegex?, maxResults?}) — matching lines across files (skips node_modules/.git/build output).
 - activeEditor() — the currently open file, its language, the user's selection, and full text.
 - diagnostics({path?}) — current problems (errors/warnings) for a file or the whole workspace.
-- editFile({path, find, replace, replaceAll?}) — replace an exact substring in an existing file (shows a diff to approve).
+- editFile({path, edits:[{find, replace, replaceAll?}]}) — apply one or more exact-substring replacements to a file in a single approval (combined diff). For one change you may pass {path, find, replace} directly. Each 'find' must be unique in the file unless replaceAll:true. Hunks apply in order.
 - createFile({path, content, overwrite?}) — create a new file (shows a diff to approve).
 - runCommand({command, cwd?}) — run a shell command in the workspace (build, test, git…); returns stdout/stderr/exit code. Requires approval.
 `.trim();

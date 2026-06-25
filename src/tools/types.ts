@@ -1,5 +1,3 @@
-import * as vscode from "vscode";
-
 export interface ApprovalRequest {
   title: string;
   detail?: string;
@@ -10,7 +8,6 @@ export interface ApprovalRequest {
 }
 
 export interface ToolContext {
-  workspaceRoot?: vscode.Uri;
   autoApproveReads: boolean;
   /** Resolves true if the user approves the action, false if they deny. */
   requestApproval: (req: ApprovalRequest) => Promise<boolean>;

@@ -41,6 +41,11 @@
         "icon": "$(add)"
       },
       {
+        "command": "smartsy.history",
+        "title": "Smartsy: History",
+        "icon": "$(history)"
+      },
+      {
         "command": "smartsy.setApiKey",
         "title": "Smartsy: Set API Key"
       },
@@ -56,9 +61,14 @@
     "menus": {
       "view/title": [
         {
+          "command": "smartsy.history",
+          "when": "view == smartsy.chatView",
+          "group": "navigation@1"
+        },
+        {
           "command": "smartsy.newChat",
           "when": "view == smartsy.chatView",
-          "group": "navigation"
+          "group": "navigation@2"
         }
       ]
     },
@@ -99,6 +109,7 @@
     "@types/node": "^20.14.0",
     "@types/vscode": "^1.90.0",
     "esbuild": "^0.23.0",
+    "highlight.js": "^11.10.0",
     "typescript": "^5.5.0"
   }
 }

@@ -69,39 +69,64 @@ export async function streamChat(
   let text = "";
   let reasoning = "";
 
+  // Parse one SSE event block, honouring the `event:` field so a mid-stream
+  // `event: error` frame surfaces as an error instead of being mistaken for meta.
+  const handleEvent = (rawEvent: string) => {
+    let eventType = "message";
+    const dataLines: string[] = [];
+    for (const line of rawEvent.split("\n")) {
+      const t = line.trim();
+      if (t.startsWith("event:")) eventType = t.slice(6).trim();
+      else if (t.startsWith("data:")) dataLines.push(t.slice(5).trim());
+    }
+    for (const data of dataLines) {
+      if (!data || data === "[DONE]") continue;
+      if (eventType === "error") {
+        let msg = "stream error";
+        try {
+          const j = JSON.parse(data);
+          msg = j.message || j.error || msg;
+        } catch {
+          /* keep default */
+        }
+        throw new SmartsyError(`Smartsy: ${msg}`);
+      }
+      let json: any;
+      try {
+        json = JSON.parse(data);
+      } catch {
+        continue;
+      }
+      if (typeof json.t === "string") {
+        text += json.t;
+        cb.onText?.(json.t);
+      } else if (typeof json.r === "string") {
+        reasoning += json.r;
+        cb.onReasoning?.(json.r);
+      } else if (json && typeof json === "object") {
+        cb.onMeta?.(json);
+      }
+    }
+  };
+
   try {
+    let idx: number;
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
       buffer += decoder.decode(value, { stream: true });
-
-      let idx: number;
       while ((idx = buffer.indexOf("\n\n")) !== -1) {
-        const rawEvent = buffer.slice(0, idx);
+        handleEvent(buffer.slice(0, idx));
         buffer = buffer.slice(idx + 2);
-        for (const line of rawEvent.split("\n")) {
-          const trimmed = line.trim();
-          if (!trimmed.startsWith("data:")) continue;
-          const data = trimmed.slice(5).trim();
-          if (!data || data === "[DONE]") continue;
-          let json: any;
-          try {
-            json = JSON.parse(data);
-          } catch {
-            continue;
-          }
-          if (typeof json.t === "string") {
-            text += json.t;
-            cb.onText?.(json.t);
-          } else if (typeof json.r === "string") {
-            reasoning += json.r;
-            cb.onReasoning?.(json.r);
-          } else if (json && typeof json === "object") {
-            cb.onMeta?.(json);
-          }
-        }
       }
     }
+    // Flush trailing bytes (and a final event not terminated by a blank line).
+    buffer += decoder.decode();
+    while ((idx = buffer.indexOf("\n\n")) !== -1) {
+      handleEvent(buffer.slice(0, idx));
+      buffer = buffer.slice(idx + 2);
+    }
+    if (buffer.trim()) handleEvent(buffer);
   } finally {
     reader.cancel().catch(() => {});
   }

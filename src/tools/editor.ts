@@ -5,14 +5,14 @@ import { rel, cap, MAX_FILE_BYTES } from "./util";
 export const activeEditor: Tool = {
   name: "activeEditor",
   readonly: true,
-  async run(_args, ctx) {
+  async run() {
     const ed = vscode.window.activeTextEditor;
     if (!ed) return { none: true, note: "No file is open in the editor." };
     const doc = ed.document;
     const sel = ed.selection;
     const full = cap(doc.getText(), MAX_FILE_BYTES);
     return {
-      path: rel(ctx.workspaceRoot, doc.uri),
+      path: rel(doc.uri),
       languageId: doc.languageId,
       lineCount: doc.lineCount,
       selection: sel.isEmpty
@@ -31,7 +31,7 @@ export const activeEditor: Tool = {
 export const diagnostics: Tool = {
   name: "diagnostics",
   readonly: true,
-  async run(args, ctx) {
+  async run(args) {
     const sevName = (s: vscode.DiagnosticSeverity): string =>
       s === vscode.DiagnosticSeverity.Error
         ? "error"
@@ -42,7 +42,7 @@ export const diagnostics: Tool = {
         : "hint";
     const out: Array<{ file: string; severity: string; message: string; line: number }> = [];
     for (const [uri, diags] of vscode.languages.getDiagnostics()) {
-      const label = rel(ctx.workspaceRoot, uri);
+      const label = rel(uri);
       if (args.path && label !== String(args.path)) continue;
       for (const d of diags) {
         out.push({ file: label, severity: sevName(d.severity), message: d.message, line: d.range.start.line + 1 });
