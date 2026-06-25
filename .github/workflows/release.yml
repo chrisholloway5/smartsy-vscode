@@ -11,6 +11,9 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
+    env:
+      VSCE_PAT: ${{ secrets.VSCE_PAT }}
+      OVSX_PAT: ${{ secrets.OVSX_PAT }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -18,11 +21,25 @@ jobs:
           node-version: "20"
       - run: npm ci
       - run: npm run build
-      - name: Package (strip leading v from tag)
+
+      - name: Package .vsix (strip leading v from the tag)
         run: |
           TAG="${{ github.ref_name }}"
           npx @vscode/vsce package --no-dependencies -o "smartsy-vscode-${TAG#v}.vsix"
-      - uses: softprops/action-gh-release@v2
+
+      - name: Attach .vsix to the GitHub release
+        uses: softprops/action-gh-release@v2
         with:
           files: "*.vsix"
           generate_release_notes: true
+
+      # The two steps below run only when the matching repo secret is set, so a
+      # release still succeeds (GitHub-only) before the Marketplace/Open VSX
+      # tokens are configured.
+      - name: Publish to VS Code Marketplace
+        if: ${{ env.VSCE_PAT != '' }}
+        run: npx @vscode/vsce publish --no-dependencies --packagePath smartsy-vscode-*.vsix -p "$VSCE_PAT"
+
+      - name: Publish to Open VSX
+        if: ${{ env.OVSX_PAT != '' }}
+        run: npx ovsx publish smartsy-vscode-*.vsix -p "$OVSX_PAT"

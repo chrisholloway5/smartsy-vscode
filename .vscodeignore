@@ -5,6 +5,7 @@ node_modules/**
 .gitignore
 tsconfig.json
 esbuild.js
+icon-source.svg
 *.vsix
 **/*.ts
 **/*.map

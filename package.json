@@ -3,7 +3,8 @@
   "displayName": "Smartsy",
   "description": "Agentic coding chat for VS Code, powered by Smartsy.",
   "version": "0.1.0",
-  "publisher": "smartsy",
+  "icon": "media/icon.png",
+  "publisher": "progressive-robot",
   "author": "Progressive Robot Ltd",
   "license": "MIT",
   "repository": {
