@@ -1,0 +1,104 @@
+{
+  "name": "smartsy-vscode",
+  "displayName": "Smartsy",
+  "description": "Agentic coding chat for VS Code, powered by Smartsy.",
+  "version": "0.1.0",
+  "publisher": "smartsy",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "AI",
+    "Chat",
+    "Programming Languages"
+  ],
+  "main": "./dist/extension.js",
+  "activationEvents": [],
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "smartsy",
+          "title": "Smartsy",
+          "icon": "media/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "smartsy": [
+        {
+          "id": "smartsy.chatView",
+          "name": "Chat",
+          "type": "webview"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "smartsy.newChat",
+        "title": "Smartsy: New Chat",
+        "icon": "$(add)"
+      },
+      {
+        "command": "smartsy.setApiKey",
+        "title": "Smartsy: Set API Key"
+      },
+      {
+        "command": "smartsy.setBaseUrl",
+        "title": "Smartsy: Set Server URL"
+      },
+      {
+        "command": "smartsy.focusChat",
+        "title": "Smartsy: Open Chat"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "smartsy.newChat",
+          "when": "view == smartsy.chatView",
+          "group": "navigation"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Smartsy",
+      "properties": {
+        "smartsy.baseUrl": {
+          "type": "string",
+          "default": "https://smartsy-ai.com",
+          "description": "Base URL of your Smartsy server (no trailing slash). The extension calls <baseUrl>/api/chat."
+        },
+        "smartsy.model": {
+          "type": "string",
+          "default": "",
+          "description": "Model id to request. Leave blank to use the server's configured default."
+        },
+        "smartsy.maxToolIterations": {
+          "type": "number",
+          "default": 12,
+          "description": "Maximum number of tool round-trips the agent may take per message before it must answer."
+        },
+        "smartsy.autoApproveReads": {
+          "type": "boolean",
+          "default": true,
+          "description": "Run read-only tools (read file, list dir, search, diagnostics) without asking. Writes and shell commands always require approval."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run build",
+    "build": "node esbuild.js",
+    "watch": "node esbuild.js --watch",
+    "typecheck": "tsc --noEmit",
+    "package": "vsce package --no-dependencies"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "@types/vscode": "^1.90.0",
+    "esbuild": "^0.23.0",
+    "typescript": "^5.5.0"
+  }
+}
