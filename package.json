@@ -4,6 +4,7 @@
   "description": "Agentic coding chat for VS Code, powered by Smartsy.",
   "version": "0.1.0",
   "publisher": "smartsy",
+  "author": "Progressive Robot Ltd",
   "license": "MIT",
   "repository": {
     "type": "git",
