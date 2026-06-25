@@ -18,7 +18,10 @@ jobs:
           node-version: "20"
       - run: npm ci
       - run: npm run build
-      - run: npx @vscode/vsce package --no-dependencies -o "smartsy-vscode-${{ github.ref_name }}.vsix"
+      - name: Package (strip leading v from tag)
+        run: |
+          TAG="${{ github.ref_name }}"
+          npx @vscode/vsce package --no-dependencies -o "smartsy-vscode-${TAG#v}.vsix"
       - uses: softprops/action-gh-release@v2
         with:
           files: "*.vsix"

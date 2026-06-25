@@ -117,7 +117,7 @@
   "devDependencies": {
     "@types/node": "^20.14.0",
     "@types/vscode": "^1.90.0",
-    "esbuild": "^0.23.0",
+    "esbuild": "^0.25.0",
     "highlight.js": "^11.10.0",
     "typescript": "^5.5.0"
   }
